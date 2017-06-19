@@ -3,12 +3,22 @@ package shdb
 import (
 	"sync"
 	"os"
+	"github.com/ilikehome/studb/journal"
+)
+
+type OP_TYPE int8
+
+const (
+	OP_PUT OP_TYPE = iota
+	OP_DEL
 )
 
 type DB struct{
 	lock sync.RWMutex
+	seq int64
 	diskFile *os.File
 	mi *memInx
+	j *journal.Log
 }
 func Load(dbFile string ) *DB{
 	f,_ := os.OpenFile(dbFile, os.O_RDWR, 0666)
@@ -16,21 +26,23 @@ func Load(dbFile string ) *DB{
 	mi := createMemInx(f)
 	db.diskFile = f
 	db.mi = mi
+	db.j = journal.OpenJournal(dbFile+".j")
 	return db
 }
 
-type row struct{
-	kLen,vLen uint8
-	KeyValue [290]byte//1+1+32+256
+type Row struct{
+	Seq int64
+	KLen, VLen uint8
+	KeyValue   [290]byte//1+1+32+256
 }
 
-func (db *DB) write(r *row, locate int64) error{
+func (db *DB) write(r *Row, locate int64) error{
 	db.diskFile.Seek(locate, os.SEEK_SET)
 	_, err := db.diskFile.Write(append([]byte{}, r.KeyValue[:]...))
 	return err
 }
 
-func (db *DB) writeEnd(r *row) error{
+func (db *DB) writeEnd(r *Row) error{
 	db.diskFile.Seek(0, os.SEEK_END)
 	_, err := db.diskFile.Write(append([]byte{}, r.KeyValue[:]...))
 	return err
@@ -38,11 +50,11 @@ func (db *DB) writeEnd(r *row) error{
 
 func (db *DB) Write(k,v []byte) error{
 	inx,ok := db.mi.get(k)
-	r := new(row)
-	r.kLen = uint8(len(k))
-	r.vLen = uint8(len(v))
-	r.KeyValue[0] = r.kLen
-	r.KeyValue[1] = r.vLen
+	r := new(Row)
+	r.KLen = uint8(len(k))
+	r.VLen = uint8(len(v))
+	r.KeyValue[0] = r.KLen
+	r.KeyValue[1] = r.VLen
 	copy(r.KeyValue[2:33], k)
 	copy(r.KeyValue[33:], v)
 	if ok{
