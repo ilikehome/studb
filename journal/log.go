@@ -3,6 +3,7 @@ package journal
 import (
 	"os"
 	"sync"
+	"encoding/binary"
 	"github.com/ilikehome/studb/shdb"
 )
 
@@ -22,10 +23,9 @@ const(
 const ChunkMaxSize = 32*1024
 
 type Log struct{
-	f *os.File
-	lock sync.Mutex
-	buf [ChunkMaxSize]byte
-	bufCnt int64
+	f           *os.File
+	lock        sync.Mutex
+	chunkOffset int64
 }
 
 type record struct{
@@ -36,35 +36,39 @@ type record struct{
 	content []byte
 }
 
-func (r *record)getBytes() []byte{
-
-}
 
 func OpenJournal(journal string) *Log {
 	l := new(Log)
 	jf,_ := os.OpenFile(journal, os.O_APPEND, 0666)
 	l.f = jf
 	if fInfo,err := jf.Stat(); err==nil{
-		l.bufCnt = fInfo.Size() % 32*1024
+		l.chunkOffset = fInfo.Size() % 32*1024
 	}
-	l.buf = [32*1024]byte{}
 	return l
 }
 
 func (l *Log)Write(batch *[]shdb.Row) error{
 	for _,r := range *batch{
 		size := r.KLen+r.VLen + 8 + 1 + 8 +1
-		if (l.bufCnt + int64(size)) <= ChunkMaxSize{
+		if (l.chunkOffset + int64(size)) <= ChunkMaxSize{
 			record := new(record)
 			record.len = int64(size)
 			record.seq = r.Seq
 			record.pos = fullChunkType
 			record.op = shdb.OP_PUT
-			c := [r.KLen+r.VLen]byte{}
-			copy(c[:r.KLen], r.KeyValue[:r.KLen])
-			copy(c[r.KLen:], r.KeyValue[32:32+r.VLen])
+			c := [size]byte{}
+			var buf = make([]byte, 8)
+			binary.BigEndian.PutUint64(buf, uint64(record.len))
+			copy(c[:8], buf)
+			binary.BigEndian.PutUint64(buf, uint64(record.seq))
+			copy(c[8:16], buf)
+			c[16]= byte(record.pos)
+			c[17]= byte(record.op)
+			copy(c[18:18+r.KLen], r.KeyValue[:r.KLen])
+			copy(c[18+r.KLen:], r.KeyValue[32:32+r.VLen])
 			record.content = c[:]
-			l.f.Write(record.getBytes())
+			l.f.Write(c[:])
+			l.chunkOffset+= int64(size)
 		}else{
 
 		}
