@@ -1,4 +1,4 @@
-package shdb
+package index
 
 import (
 	"sync"
@@ -7,14 +7,14 @@ import (
 )
 
 
-type memInx struct{
+type IndexInMem struct{
 	inx map[string]int64
 	lock sync.RWMutex
 	dumpInDisk *os.File
 }
 
-func createMemInx(f *os.File) *memInx{
-	mi := new(memInx)
+func CreateMemInx(f *os.File) *IndexInMem{
+	mi := new(IndexInMem)
  	inx := load(f)
 	mi.inx = inx
 	return mi
@@ -35,19 +35,19 @@ func load(f *os.File) map[string]int64{
 	return inx
 }
 
-func (m *memInx) flush() {
+func (m *IndexInMem) Flush() {
 
 }
 
-func (m *memInx)put(k []byte, locate int64) {
+func (m *IndexInMem)Put(k []byte, locate int64) {
 	m.inx[hex.EncodeToString(k)] = locate
 }
 
-func (m *memInx)get(k []byte) (int64, bool){
+func (m *IndexInMem)Get(k []byte) (int64, bool){
 	v,ok := m.inx[hex.EncodeToString(k)]
 	return v,ok
 }
 
-func (m *memInx)del(k []byte){
+func (m *IndexInMem)Del(k []byte){
 	delete(m.inx, hex.EncodeToString(k))
 }

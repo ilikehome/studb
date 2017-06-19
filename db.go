@@ -1,29 +1,24 @@
-package shdb
+package studb
 
 import (
 	"sync"
 	"os"
 	"github.com/ilikehome/studb/journal"
-)
-
-type OP_TYPE int8
-
-const (
-	OP_PUT OP_TYPE = iota
-	OP_DEL
+	"github.com/ilikehome/studb/index"
 )
 
 type DB struct{
 	lock sync.RWMutex
 	seq int64
 	diskFile *os.File
-	mi *memInx
+	mi *index.IndexInMem
 	j *journal.Log
 }
+
 func Load(dbFile string ) *DB{
 	f,_ := os.OpenFile(dbFile, os.O_RDWR, 0666)
 	db := new(DB)
-	mi := createMemInx(f)
+	mi := index.CreateMemInx(f)
 	db.diskFile = f
 	db.mi = mi
 	db.j = journal.OpenJournal(dbFile+".j")
@@ -33,7 +28,7 @@ func Load(dbFile string ) *DB{
 type Row struct{
 	Seq int64
 	KLen, VLen uint8
-	KeyValue   [290]byte//1+1+32+256
+	KeyValue [290]byte//1+1+32+256
 }
 
 func (db *DB) write(r *Row, locate int64) error{
@@ -49,7 +44,7 @@ func (db *DB) writeEnd(r *Row) error{
 }
 
 func (db *DB) Write(k,v []byte) error{
-	inx,ok := db.mi.get(k)
+	inx,ok := db.mi.Get(k)
 	r := new(Row)
 	r.KLen = uint8(len(k))
 	r.VLen = uint8(len(v))
@@ -58,17 +53,17 @@ func (db *DB) Write(k,v []byte) error{
 	copy(r.KeyValue[2:33], k)
 	copy(r.KeyValue[33:], v)
 	if ok{
-		db.mi.put(k, inx)
+		db.mi.Put(k, inx)
 		return db.write(r, int64(inx))
 	}else{
 		fi,_ := db.diskFile.Stat()
-		db.mi.put(k, fi.Size())
+		db.mi.Put(k, fi.Size())
 		return db.writeEnd(r)
 	}
 }
 
 func (db *DB) Read(k []byte) []byte{
-	inx,ok := db.mi.get(k)
+	inx,ok := db.mi.Get(k)
 	if !ok{
 		return nil
 	}
@@ -78,7 +73,6 @@ func (db *DB) Read(k []byte) []byte{
 }
 
 func (db *DB) Close(){
-	db.diskFile.Sync()
 	db.diskFile.Close()
 }
 
