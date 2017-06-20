@@ -25,40 +25,32 @@ func Load(dbFile string ) *DB{
 	return db
 }
 
-type Row struct{
-	Seq int64
-	KLen, VLen uint8
-	KeyValue [290]byte//1+1+32+256
-}
-
-func (db *DB) write(r *Row, locate int64) error{
+func (db *DB) write(r *[290]byte, locate int64) error{
 	db.diskFile.Seek(locate, os.SEEK_SET)
-	_, err := db.diskFile.Write(append([]byte{}, r.KeyValue[:]...))
+	_, err := db.diskFile.Write(r[:])
 	return err
 }
 
-func (db *DB) writeEnd(r *Row) error{
+func (db *DB) writeEnd(r *[290]byte) error{
 	db.diskFile.Seek(0, os.SEEK_END)
-	_, err := db.diskFile.Write(append([]byte{}, r.KeyValue[:]...))
+	_, err := db.diskFile.Write(r[:])
 	return err
 }
 
 func (db *DB) Write(k,v []byte) error{
 	inx,ok := db.mi.Get(k)
-	r := new(Row)
-	r.KLen = uint8(len(k))
-	r.VLen = uint8(len(v))
-	r.KeyValue[0] = r.KLen
-	r.KeyValue[1] = r.VLen
-	copy(r.KeyValue[2:33], k)
-	copy(r.KeyValue[33:], v)
+	kv := [290]byte{}//1+1+32+256
+	kv[0] = uint8(len(k))
+	kv[1] = uint8(len(v))
+	copy(kv[2:33], k)
+	copy(kv[33:], v)
 	if ok{
 		db.mi.Put(k, inx)
-		return db.write(r, int64(inx))
+		return db.write(&kv, int64(inx))
 	}else{
 		fi,_ := db.diskFile.Stat()
 		db.mi.Put(k, fi.Size())
-		return db.writeEnd(r)
+		return db.writeEnd(&kv)
 	}
 }
 

@@ -5,7 +5,6 @@ import (
 	"sync"
 	"encoding/binary"
 	"github.com/ilikehome/studb/constant"
-	"github.com/ilikehome/studb"
 )
 
 const(
@@ -22,6 +21,12 @@ const(
 )
 
 const ChunkMaxSize = 32*1024
+
+type row struct{
+	Seq int64
+	KLen, VLen uint8
+	KeyValue [290]byte//1+1+32+256
+}
 
 type Log struct{
 	f           *os.File
@@ -47,7 +52,7 @@ func OpenJournal(journal string) *Log {
 	return l
 }
 
-func (l *Log)Write(batch *[]studb.Row) error{
+func (l *Log)Write(batch *[]row) error{
 	for _,r := range *batch{
 		size := r.KLen+r.VLen + 8 + 1 + 8 +1
 		if (l.chunkOffset + int64(size)) <= ChunkMaxSize{
@@ -56,7 +61,7 @@ func (l *Log)Write(batch *[]studb.Row) error{
 			record.seq = r.Seq
 			record.pos = fullChunkType
 			record.op = constant.OP_PUT
-			c := [size]byte{}
+			c := make([]byte, size, size)
 			var buf = make([]byte, 8)
 			binary.BigEndian.PutUint64(buf, uint64(record.len))
 			copy(c[:8], buf)
