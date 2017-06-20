@@ -42,6 +42,10 @@ func (db *DB) Write(k,v []byte) error{
 	kv := [290]byte{}//1+1+32+256
 	kv[0] = uint8(len(k))
 	kv[1] = uint8(len(v))
+<<<<<<< HEAD
+=======
+	kv[2:33] = k
+>>>>>>> refs/remotes/origin/master
 	copy(kv[2:33], k)
 	copy(kv[33:], v)
 	if ok{
