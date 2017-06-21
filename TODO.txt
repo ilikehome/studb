@@ -1,19 +1,20 @@
 Todo: 最原始的版本完成，以下是需要继续完成的部分。以下功能完成后，将是一个单机KV数据库。
 
-1 log is not used.   应该先写log，然后接口返回；数据文件和日志是异步写。
+0 go test not run now. finish.
+
+1 index is only in memory. Should add disk index.  索引功能现在相当于没有。
+    util function: index in disk, append only;磁盘索引工具类，数据结构定义，append功能.   feature_disk_index_util
+    Use disk log append() in put workflow. when put, append index
+    when startup, scan index, then put to mem index. 到这步重启不丢索引数据。
+    index(disk index & mem index) use one interface to upper layyer.
+    index key algorithm improve.
+
+2 concurrency. 还没有使用锁，当前不支持并发操作
+
+2 log is not used.   应该先写log，然后接口返回；数据文件和日志是异步写。
     Finish log util function;  feature_log_util
     when put, append log
     when startup, scan log &data file & index. fix the latest sequence.
-
-2 index is only in memory. Should add disk index.  索引功能现在相当于没有。
-    util function: index in disk;
-    when put, append index
-    when startup, scan index, then put to mem index.
-    index(disk index & mem index) use one interface to upper layyer.
-
-0 concurrency. 还没有使用锁，当前不支持并发操作
-
-3 go test not run now.
 
 4 cache  缓存功能。
     util function. easy algorithm.
@@ -21,7 +22,6 @@ Todo: 最原始的版本完成，以下是需要继续完成的部分。以下�
     improve algorithm.
 
 5 KV is fixed length in datafile. change to vary length.
-
 
 
 开始拉feature分支，逐步完成。
