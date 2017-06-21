@@ -6,7 +6,7 @@ import (
 )
 
 func TestingLogger(t *testing.T)  {
-	db := Load("d:\\shdb1\\1.txt")
+	db := Open("d:\\shdb1\\1.txt")
 	defer db.Close()
 
 	db.Write([]byte("gggg24r"),[]byte("lllrrrlll4"))

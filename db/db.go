@@ -5,6 +5,7 @@ import (
 	"os"
 	"github.com/ilikehome/studb/db/journal"
 	"github.com/ilikehome/studb/db/index"
+	"fmt"
 )
 
 type DB struct{
@@ -15,7 +16,7 @@ type DB struct{
 	j *journal.Log
 }
 
-func Load(dbFile string ) *DB{
+func Open(dbFile string ) *DB{
 	f,_ := os.OpenFile(dbFile, os.O_RDWR, 0666)
 	db := new(DB)
 	mi := index.CreateMemInx(f)
@@ -54,14 +55,14 @@ func (db *DB) Write(k,v []byte) error{
 	}
 }
 
-func (db *DB) Read(k []byte) []byte{
+func (db *DB) Read(k []byte) ([]byte, error){
 	inx,ok := db.mi.Get(k)
 	if !ok{
-		return nil
+		return nil, fmt.Errorf("DB is not ok.")
 	}
 	buf := [290]byte{}
 	db.diskFile.ReadAt(buf[:], int64(inx))
-	return buf[33 : 33+buf[1]]
+	return buf[33 : 33+buf[1]], nil
 }
 
 func (db *DB) Close(){

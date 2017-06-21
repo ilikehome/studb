@@ -1,15 +1,16 @@
 package main
 
 import (
-	"github.com/ilikehome/studb/studb"
+	"github.com/ilikehome/studb/db"
 	"fmt"
 )
 
 
 func main() {
-	db := studb.Load("c:\\shdb1\\1.txt")
+	db := db.Open("c:\\shdb1\\1.txt")
 	defer db.Close()
 
 	db.Write([]byte("gggg24r"),[]byte("lllrrrlll4"))
-	fmt.Println(string(db.Read([]byte("gggg24r"))))
+	buf,_ := db.Read([]byte("gggg24r"))
+	fmt.Println(string(buf))
 }
