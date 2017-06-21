@@ -6,6 +6,7 @@ import(
 	"fmt"
 	"sync"
 	"io"
+	"encoding/hex"
 )
 
 type indexInDisk struct{
@@ -15,8 +16,9 @@ type indexInDisk struct{
 }
 
 type record struct{
-	k string
-	location int64
+	kLen uint16
+	loc uint64
+	k []byte
 }
 
 func Open(diskFile string) *indexInDisk{
@@ -38,8 +40,8 @@ func (iid *indexInDisk)ReadToMem() map[string]int64{
 	if f,err := os.OpenFile(iid.fname, os.O_RDONLY, 0666); err!=nil{
 		buf := [1024*1024*64]byte{}
 		var leftbuf []byte
-		for{
-			_, err := f.Read(buf[:])
+		for{//TODO: larger than 64M
+			n, err := f.Read(buf[:])
 			if err==io.EOF{
 				return mem
 			}else if err != nil{
@@ -47,14 +49,14 @@ func (iid *indexInDisk)ReadToMem() map[string]int64{
 			}else{
 				if leftbuf == nil{
 					offset := 0
-					for {
+					for offset+1 < n{
 						kSize := int(binary.BigEndian.Uint16(buf[offset:offset +2]))
-						seq := binary.BigEndian.Uint64(buf[offset+4:offset+12])
-						k := buf[offset+12:offset+12+kSize]
-						v := buf[offset+12+kSize:offset+12+kSize+vSize]
-						mem.put()
+						loc := int64(binary.BigEndian.Uint64(buf[offset+2:offset+10]))
+						kStr := hex.EncodeToString(buf[offset+12:offset+12+kSize])
+						mem[kStr] = loc
+						offset = offset+12+kSize
 					}
-
+				return mem
 				}//TODO:
 			}
 		}
@@ -70,19 +72,16 @@ func (iid *indexInDisk)compact() error{
 }
 
 func (i *record)toBytes() []byte{
-	size := 2+2+8+i.kSize+i.vSize
+	size := 2+8+i.kLen
 	b := make([]byte, size, size)
-	binary.BigEndian.PutUint16(b[0:2], i.kSize)
-	binary.BigEndian.PutUint16(b[2:4], i.vSize)
-	binary.BigEndian.PutUint64(b[4:12], i.seq)
-	copy(b[12:12+i.kSize], i.k[:])
-	binary.BigEndian.PutUint64(b[4:12], i.seq)
-	copy(b[12+i.kSize:], i.v[:])
+	binary.BigEndian.PutUint16(b[0:2], i.kLen)
+	binary.BigEndian.PutUint64(b[4:12], i.loc)
+	copy(b[12:12+i.kLen], i.k[:])
 	return b
 }
 
-func (iid *indexInDisk)Append(seq uint64, k,v []byte) error{
-	i := record{uint16(len(k)), uint16(len(v)), seq, k, v}
+func (iid *indexInDisk)Append(k []byte, loc uint64) error{
+	i := record{uint16(len(k)), loc, k}
 	iid.f.Write(i.toBytes())
 	return nil
 }
