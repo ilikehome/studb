@@ -9,19 +9,19 @@ import (
 )
 
 type DB struct{
-	lock sync.RWMutex
-	seq int64
+	lock     sync.RWMutex
+	seq      int64
 	diskFile *os.File
-	mi *index.IndexInMem
-	j *journal.Log
+	inx      *index.Index
+	j        *journal.Log
 }
 
 func Open(dbFile string ) *DB{
 	f,_ := os.OpenFile(dbFile, os.O_RDWR, 0666)
 	db := new(DB)
-	mi := index.CreateMemInx(f)
+	inx := index.Init(f)
 	db.diskFile = f
-	db.mi = mi
+	db.inx = inx
 	db.j = journal.OpenJournal(dbFile+".j")
 	return db
 }
@@ -39,24 +39,24 @@ func (db *DB) writeEnd(r *[290]byte) error{
 }
 
 func (db *DB) Write(k,v []byte) error{
-	inx,ok := db.mi.Get(k)
+	inx,ok := db.inx.Get(k)
 	kv := [290]byte{}//1+1+32+256
 	kv[0] = uint8(len(k))
 	kv[1] = uint8(len(v))
 	copy(kv[2:33], k)
 	copy(kv[33:], v)
 	if ok{
-		db.mi.Put(k, inx)
+		db.inx.Put(k, 1, inx)
 		return db.write(&kv, int64(inx))
 	}else{
 		fi,_ := db.diskFile.Stat()
-		db.mi.Put(k, fi.Size())
+		db.inx.Put(k, 1, fi.Size())
 		return db.writeEnd(&kv)
 	}
 }
 
 func (db *DB) Read(k []byte) ([]byte, error){
-	inx,ok := db.mi.Get(k)
+	inx,ok := db.inx.Get(k)
 	if !ok{
 		return nil, fmt.Errorf("DB is not ok.")
 	}

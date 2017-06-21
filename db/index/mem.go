@@ -6,13 +6,13 @@ import (
 	"os"
 )
 
-type IndexInMem struct{
+type indexInMem struct{
 	inx map[string]int64
 	lock sync.RWMutex
 }
 
-func CreateMemInx(f *os.File) *IndexInMem{
-	mi := new(IndexInMem)
+func createMemIndex(f *os.File) *indexInMem {
+	mi := new(indexInMem)
  	inx := load(f)
 	mi.inx = inx
 	return mi
@@ -33,19 +33,15 @@ func load(f *os.File) map[string]int64{
 	return inx
 }
 
-func (m *IndexInMem) Flush() {
-
-}
-
-func (m *IndexInMem)Put(k []byte, locate int64) {
+func (m *indexInMem) put(k []byte, locate int64) {
 	m.inx[hex.EncodeToString(k)] = locate
 }
 
-func (m *IndexInMem)Get(k []byte) (int64, bool){
+func (m *indexInMem) get(k []byte) (int64, bool){
 	v,ok := m.inx[hex.EncodeToString(k)]
 	return v,ok
 }
 
-func (m *IndexInMem)Del(k []byte){
+func (m *indexInMem) del(k []byte){
 	delete(m.inx, hex.EncodeToString(k))
 }
