@@ -58,7 +58,7 @@ func (iid *indexInDisk) readToMem() map[string]int64{
 					offset = offset+18+kSize
 				}
 				return mem
-			}//TODO:
+			}//TODO: more than 64M is not support
 		}
 	}
 
