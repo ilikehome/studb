@@ -6,11 +6,9 @@ import (
 	"os"
 )
 
-
 type IndexInMem struct{
 	inx map[string]int64
 	lock sync.RWMutex
-	dumpInDisk *os.File
 }
 
 func CreateMemInx(f *os.File) *IndexInMem{

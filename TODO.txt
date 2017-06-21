@@ -7,7 +7,7 @@ Todo: 最原始的版本完成，以下是需要继续完成的部分。以下�
     Use disk log append() in put workflow. when put, append index
     when startup, scan index, then put to mem index. 到这步重启不丢索引数据。
     index(disk index & mem index) use one interface to upper layyer.
-    index key algorithm improve.
+    index key algorithm improve. 索引key的hash算法有点问题。
 
 2 concurrency. 还没有使用锁，当前不支持并发操作
 
@@ -23,5 +23,6 @@ Todo: 最原始的版本完成，以下是需要继续完成的部分。以下�
 
 5 KV is fixed length in datafile. change to vary length.
 
+6 uint64 int64 used confusedly. 无符号用的很乱。
 
 开始拉feature分支，逐步完成。
