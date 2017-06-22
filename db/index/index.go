@@ -1,26 +1,32 @@
 package index
 
-import "os"
+import (
+	"os"
+	"github.com/ilikehome/studb/db/constant"
+)
 
 type Index struct{
 	iid *indexInDisk
 	m *indexInMem
 }
 
-func Init(diskFile *os.File) *Index{
+func Init(f *os.File) *Index{
 	i := new(Index)
-	i.m = createMemIndex(diskFile)
+	i.m = createMemIndex(f)
+	i.iid = open(f)
 	return i
 }
 
-func (i *Index)Put(k []byte, seq uint64, locate int64){
-	i.m.put(k, locate)
+func (i *Index)Put(seq uint64, k []byte, loc int64){
+	i.m.put(k, loc)
+	i.iid.append(seq, constant.OP_PUT , k, uint64(loc))
 }
 
 func (i *Index)Get(k []byte) (int64, bool){
 	return i.m.get(k)
 }
 
-func (i *Index)Del(k []byte){
+func (i *Index)Del(seq uint64, k []byte){
 	i.m.del(k)
+	i.iid.append(seq, constant.OP_DEL , nil, 0)
 }

@@ -25,4 +25,6 @@ Todo: 最原始的版本完成，以下是需要继续完成的部分。以下�
 
 6 uint64 int64 used confusedly. 无符号用的很乱。
 
+7 disk file open mode. if not exist: create/panic.
+
 开始拉feature分支，逐步完成。

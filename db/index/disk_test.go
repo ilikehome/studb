@@ -3,21 +3,24 @@ package index
 import (
 	"testing"
 	"encoding/hex"
+	"os"
+	"github.com/ilikehome/studb/db/constant"
 )
 
 const (
-	indexInDiskPath = "d:\\shdb1\\1.inx.txt"
+	indexInDiskPath = "/1.inx.txt"
 )
 
 func TestBase(t *testing.T) {
-	iid := Open(indexInDiskPath)
+	f,_ := os.OpenFile(indexInDiskPath, os.O_RDWR, 0666);
+	iid := open(f)
 	defer iid.close()
 
-	iid.append(64,1 ,[]byte{'a', 'b', 'c'})
-	iid.append(164, 2, []byte{'a', 'b', 'w'})
-	iid.append(264, 3, []byte{'a', 'b', 'w'})
-	iid.append(364, 4, []byte{'a', 'b', 'w'})
-	iid.append(464, 5, []byte{'a', 'y', 'c'})
+	iid.append(1, constant.OP_PUT, []byte{'a', 'b', 'c'}, 64)
+	iid.append(2, constant.OP_PUT, []byte{'a', 'b', 'w'},164)
+	iid.append(3, constant.OP_PUT, []byte{'a', 'b', 'w'},264)
+	iid.append(4, constant.OP_PUT, []byte{'a', 'b', 'w'},364)
+	iid.append(5, constant.OP_PUT, []byte{'a', 'y', 'c'},464)
 
 	m := iid.readToMem()
 	if m[hex.EncodeToString([]byte{'a','y','c'})] != 464{

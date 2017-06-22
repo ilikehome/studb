@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	dbPath = "c:\\shdb1\\1.txt"
+	dbPath = "/1.txt"
 )
 
 func TestBaseRW(t *testing.T)  {

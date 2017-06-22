@@ -46,11 +46,11 @@ func (db *DB) Write(k,v []byte) error{
 	copy(kv[2:33], k)
 	copy(kv[33:], v)
 	if ok{
-		db.inx.Put(k, 1, inx)
+		db.inx.Put(1, k, inx)
 		return db.write(&kv, int64(inx))
 	}else{
 		fi,_ := db.diskFile.Stat()
-		db.inx.Put(k, 1, fi.Size())
+		db.inx.Put(1, k, fi.Size())
 		return db.writeEnd(&kv)
 	}
 }

@@ -18,7 +18,7 @@ func createMemIndex(f *os.File) *indexInMem {
 	return mi
 }
 
-func load(f *os.File) map[string]int64{
+func load(f *os.File) map[string]int64{//TODO:read data file when start, now.
 	inx := make(map[string]int64)
 	buf := [290]byte{}
 	i := int64(0)

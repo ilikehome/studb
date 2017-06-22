@@ -7,6 +7,7 @@ import(
 	"sync"
 	"io"
 	"encoding/hex"
+	"github.com/ilikehome/studb/db/constant"
 )
 
 type indexInDisk struct{
@@ -15,17 +16,14 @@ type indexInDisk struct{
 }
 
 type record struct{
-	kLen uint16
-	loc uint64
-	seq uint64
-	k []byte
+	seq uint64//8
+	op constant.OPT_CRUD//1
+	klen uint16//2
+	k []byte//kLen
+	loc uint64//8
 }
 
-func Open(diskFile string) *indexInDisk{
-	f,err := os.OpenFile(diskFile, os.O_RDWR, 0666);
-	if err != nil{
-		panic(fmt.Sprintf("open index file in disk fail. %v", err))
-	}
+func open(f *os.File) *indexInDisk{
 	iid := new(indexInDisk)
 	iid.f = f
 	return iid
@@ -51,11 +49,11 @@ func (iid *indexInDisk) readToMem() map[string]int64{
 			if leftbuf == nil{
 				offset := 0
 				for offset+1 < n{
-					kSize := int(binary.BigEndian.Uint16(buf[offset:offset +2]))
-					loc := int64(binary.BigEndian.Uint64(buf[offset+2:offset+10]))
-					kStr := hex.EncodeToString(buf[offset+18:offset+18+kSize])
+					kSize := int(binary.BigEndian.Uint16(buf[offset+9 : offset +11]))
+					kStr := hex.EncodeToString(buf[offset+11 : offset+11+kSize])
+					loc := int64(binary.BigEndian.Uint64(buf[offset+11+kSize : offset+19+kSize]))
 					mem[kStr] = loc
-					offset = offset+18+kSize
+					offset = offset+19+kSize
 				}
 				return mem
 			}//TODO: more than 64M is not support
@@ -69,20 +67,21 @@ func (iid *indexInDisk)compact() error{
 }
 
 func (i *record)toBytes() []byte{
-	size := 2+8+8+i.kLen
+	size := 8+1+2+i.klen+8
 	b := make([]byte, size, size)
-	binary.BigEndian.PutUint16(b[0:2], i.kLen)
-	binary.BigEndian.PutUint64(b[2:10], i.loc)
-	binary.BigEndian.PutUint64(b[10:18], i.seq)
-	copy(b[18:18+i.kLen], i.k[:])
+	binary.BigEndian.PutUint64(b[0:8], i.seq)
+	b[8]=byte(i.op)
+	binary.BigEndian.PutUint16(b[9:11], i.klen)
+	copy(b[11:11+i.klen], i.k[:])
+	binary.BigEndian.PutUint64(b[11+i.klen:], i.loc)
 	return b
 }
 
-func (iid *indexInDisk) append(loc uint64, seq uint64, k []byte) error{
+func (iid *indexInDisk) append(seq uint64, op constant.OPT_CRUD,  k []byte, loc uint64) error{
 	iid.lock.Lock()
 	defer iid.lock.Unlock()
 
-	i := record{uint16(len(k)), loc, seq, k}
+	i := record{seq, op, uint16(len(k)), k, loc}
 	iid.f.Write(i.toBytes())
 	return nil
 }
