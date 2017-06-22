@@ -11,10 +11,9 @@ type indexInMem struct{
 	lock sync.RWMutex
 }
 
-func createMemIndex(f *os.File) *indexInMem {
+func createMemIndex(m map[string]int64) *indexInMem {
 	mi := new(indexInMem)
- 	inx := load(f)
-	mi.inx = inx
+	mi.inx = m
 	return mi
 }
 

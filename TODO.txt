@@ -4,12 +4,12 @@ Todo: 最原始的版本完成，以下是需要继续完成的部分。以下�
 
 1 index is only in memory. Should add disk index.  索引功能现在相当于没有。
     util function: index in disk, append only;磁盘索引工具类，数据结构定义，append功能.   feature_disk_index_util. finished.
-    Use disk log append() in put workflow. when put, append index                   feature_use_disk_index.
-    when startup, scan index, then put to mem index. 到这步重启不丢索引数据。
-    index(disk index & mem index) use one interface to upper layyer.
+    Use disk log append() in put workflow. when put, append index                   feature_use_disk_index. finished
+    when startup, scan index, then put to mem index. 到这步重启不丢索引数据。            feature_use_disk_index. finished
+    index(disk index & mem index) use one interface to upper layyer.                  feature_use_disk_index. finished
     index key algorithm improve. 索引key的hash算法有点问题。
 
-2 concurrency. 还没有使用锁，当前不支持并发操作
+2 concurrency. 还没有使用锁，当前不支持并发操作                                           feature_concurrency
 
 2 log is not used.   应该先写log，然后接口返回；数据文件和日志是异步写。
     Finish log util function;  feature_log_util
@@ -25,6 +25,6 @@ Todo: 最原始的版本完成，以下是需要继续完成的部分。以下�
 
 6 uint64 int64 used confusedly. 无符号用的很乱。
 
-7 disk file open mode. if not exist: create/panic.
+7 disk file open mode. if not exist: create/panic.  fix
 
 开始拉feature分支，逐步完成。

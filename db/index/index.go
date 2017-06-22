@@ -12,8 +12,8 @@ type Index struct{
 
 func Init(f *os.File) *Index{
 	i := new(Index)
-	i.m = createMemIndex(f)
 	i.iid = open(f)
+	i.m = createMemIndex(i.iid.readToMem())
 	return i
 }
 
