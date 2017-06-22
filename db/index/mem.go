@@ -3,44 +3,38 @@ package index
 import (
 	"sync"
 	"encoding/hex"
-	"os"
 )
 
 type memIndex struct{
 	inx map[string]int64
-	lock sync.RWMutex
+	lock *sync.RWMutex
 }
 
 func createMemIndex(m map[string]int64) *memIndex {
 	mi := new(memIndex)
 	mi.inx = m
+	mi.lock = new(sync.RWMutex)
 	return mi
 }
 
-func load(f *os.File) map[string]int64{//TODO:read data file when start, now.
-	inx := make(map[string]int64)
-	buf := [290]byte{}
-	i := int64(0)
-	for {
-		_, err := f.ReadAt(buf[:], i)
-		if err != nil{
-			break
-		}
-		inx[hex.EncodeToString(buf[2 : 2+buf[0]])] = i
-		i += 290
-	}
-	return inx
-}
-
 func (m *memIndex) put(k []byte, locate int64) {
+	m.lock.Lock()
+	defer  m.lock.Unlock()
+
 	m.inx[hex.EncodeToString(k)] = locate
 }
 
 func (m *memIndex) get(k []byte) (int64, bool){
+	m.lock.RLock()
+	defer  m.lock.RUnlock()
+
 	v,ok := m.inx[hex.EncodeToString(k)]
 	return v,ok
 }
 
 func (m *memIndex) del(k []byte){
+	m.lock.Lock()
+	defer  m.lock.Unlock()
+
 	delete(m.inx, hex.EncodeToString(k))
 }

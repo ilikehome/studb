@@ -11,7 +11,7 @@ import(
 )
 
 type diskIndex struct{
-	lock sync.Mutex
+	lock *sync.Mutex
 	f *os.File
 }
 
@@ -26,6 +26,7 @@ type record struct{
 func openDiskIndex(f *os.File) *diskIndex {
 	di := new(diskIndex)
 	di.f = f
+	di.lock = new(sync.Mutex)
 	return di
 }
 
@@ -63,6 +64,9 @@ func (di *diskIndex) readToMem() map[string]int64{
 }
 
 func (di *diskIndex)compact() error{
+	di.lock.Lock()
+	defer  di.lock.Unlock()
+
 	return nil
 }
 
