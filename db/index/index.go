@@ -6,27 +6,27 @@ import (
 )
 
 type Index struct{
-	iid *indexInDisk
-	m *indexInMem
+	di *diskIndex
+	mi *memIndex
 }
 
 func Init(f *os.File) *Index{
 	i := new(Index)
-	i.m = createMemIndex(f)
-	i.iid = open(f)
+	i.di = openDiskIndex(f)
+	i.mi = createMemIndex(i.di.readToMem())
 	return i
 }
 
 func (i *Index)Put(seq uint64, k []byte, loc int64){
-	i.m.put(k, loc)
-	i.iid.append(seq, constant.OP_PUT , k, uint64(loc))
+	i.mi.put(k, loc)
+	i.di.append(seq, constant.OP_PUT , k, uint64(loc))
 }
 
 func (i *Index)Get(k []byte) (int64, bool){
-	return i.m.get(k)
+	return i.mi.get(k)
 }
 
 func (i *Index)Del(seq uint64, k []byte){
-	i.m.del(k)
-	i.iid.append(seq, constant.OP_DEL , nil, 0)
+	i.mi.del(k)
+	i.di.append(seq, constant.OP_DEL , nil, 0)
 }

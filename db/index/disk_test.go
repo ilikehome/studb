@@ -12,8 +12,8 @@ const (
 )
 
 func TestBase(t *testing.T) {
-	f,_ := os.OpenFile(indexInDiskPath, os.O_RDWR, 0666);
-	iid := open(f)
+	f,_ := os.OpenFile(indexInDiskPath, os.O_RDWR|os.O_CREATE, 0666);
+	iid := openDiskIndex(f)
 	defer iid.close()
 
 	iid.append(1, constant.OP_PUT, []byte{'a', 'b', 'c'}, 64)

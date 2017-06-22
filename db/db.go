@@ -17,8 +17,16 @@ type DB struct{
 }
 
 func Open(dbFile string ) *DB{
-	f,_ := os.OpenFile(dbFile, os.O_RDWR, 0666)
+	f,err := os.OpenFile(dbFile, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil{
+		panic(err.Error())
+	}
 	db := new(DB)
+
+	f,err = os.OpenFile(dbFile+".inx", os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil{
+		panic(err.Error())
+	}
 	inx := index.Init(f)
 	db.diskFile = f
 	db.inx = inx
