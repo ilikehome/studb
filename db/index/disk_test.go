@@ -12,7 +12,7 @@ const (
 )
 
 func TestBase(t *testing.T) {
-	f,_ := os.OpenFile(indexInDiskPath, os.O_RDWR, 0666);
+	f,_ := os.OpenFile(indexInDiskPath, os.O_RDWR|os.O_CREATE, 0666);
 	iid := open(f)
 	defer iid.close()
 
