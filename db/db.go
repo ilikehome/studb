@@ -3,7 +3,7 @@ package db
 import (
 	"sync"
 	"os"
-	"github.com/ilikehome/studb/db/journal"
+	"github.com/ilikehome/studb/db/wal"
 	"github.com/ilikehome/studb/db/index"
 	"fmt"
 )
@@ -13,7 +13,7 @@ type DB struct{
 	seq      int64
 	diskFile *os.File
 	inx      *index.Index
-	j        *journal.Log
+	j        *wal.Log
 }
 
 func Open(dbFile string ) *DB{
@@ -30,7 +30,7 @@ func Open(dbFile string ) *DB{
 	inx := index.Init(f)
 	db.diskFile = f
 	db.inx = inx
-	db.j = journal.OpenJournal(dbFile+".j")
+	db.j = wal.OpenJournal(dbFile+".j")
 	return db
 }
 
