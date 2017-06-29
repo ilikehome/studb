@@ -32,11 +32,16 @@ Todo: 最原始的版本完成，以下是需要继续完成的部分。以下�
 
 9 data文件格式，性能。
 
-10 replication支持。
+10 replication支持。 replicate WAL to slave node.
+    1 master mode: do nothing. slave mode: readonly.
+    2 network model
+    3 master mode: transfer WAL. slave mode: receive WAL.  single thread.
+    3 slave node, apply WAL to system.
+
 11 分布式支持。
 12 MVCC支持
 13 不同的D级别？
-
+14 undo log.
 
 
 开始拉feature分支，逐步完成。
