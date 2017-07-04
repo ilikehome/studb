@@ -18,9 +18,10 @@ Todo: 最原始的版本完成，以下是需要继续完成的部分。以下�
     when startup, scan log &data file & index. fix the latest sequence.
 
 4 cache  缓存功能。
-    util function. easy algorithm.
-    use cache when read/write
+    util function. easy algorithm.                          ok.just use map
+    use cache when read/write                               feature_cache start
     improve algorithm.
+    limit cache size.
 
 5 KV is fixed length in datafile. change to vary length.
 
@@ -28,7 +29,8 @@ Todo: 最原始的版本完成，以下是需要继续完成的部分。以下�
 
 7 disk file open mode. if not exist: create/panic.  fix
 
-8 data/log写入时，用队列异步写入。
+8 data/log写入时，用队列异步写入。                              feature_async_data
+                                                            feature_async_log
 
 9 data文件格式，性能。
 
