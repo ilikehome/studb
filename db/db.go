@@ -5,6 +5,7 @@ import (
 	"os"
 	"github.com/ilikehome/studb/db/wal"
 	"github.com/ilikehome/studb/db/index"
+	"github.com/ilikehome/studb/db/cache"
 	"fmt"
 )
 
@@ -14,6 +15,7 @@ type DB struct{
 	diskFile *os.File
 	inx      *index.Index
 	j        *wal.Log
+	c		*cache.Cache
 }
 
 func Open(dbFile string ) *DB{
@@ -31,6 +33,7 @@ func Open(dbFile string ) *DB{
 	db.diskFile = f
 	db.inx = inx
 	db.j = wal.OpenJournal(dbFile+".j")
+	db.c = cache.CreateCache(10)
 	return db
 }
 
@@ -47,6 +50,9 @@ func (db *DB) writeEnd(r *[290]byte) error{
 }
 
 func (db *DB) Write(k,v []byte) error{
+	//db.j.Write()
+	db.c.Put(k,v)
+
 	inx,ok := db.inx.Get(k)
 	kv := [290]byte{}//1+1+32+256
 	kv[0] = uint8(len(k))
@@ -64,6 +70,11 @@ func (db *DB) Write(k,v []byte) error{
 }
 
 func (db *DB) Read(k []byte) ([]byte, error){
+	v := db.c.Get(k)
+	if v != nil{
+		return v.([]byte), nil
+	}
+
 	inx,ok := db.inx.Get(k)
 	if !ok{
 		return nil, fmt.Errorf("DB is not ok.")

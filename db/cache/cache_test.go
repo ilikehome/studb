@@ -2,6 +2,7 @@ package cache
 
 import (
 	"testing"
+	"fmt"
 )
 
 
@@ -18,5 +19,11 @@ func TestBase(t *testing.T) {
 	if v != nil {
 		t.Fatal("Del fail.")
 	}
+
+
+	c.Put([3]byte{1,2,3}, []byte{1,2})
+	vc := c.Get([3]byte{1,2,3})
+	ss := vc.([]byte)
+	fmt.Println(ss)
 }
 
