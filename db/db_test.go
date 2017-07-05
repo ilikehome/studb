@@ -2,13 +2,19 @@ package db
 
 import (
 	"testing"
+	"os"
 )
 
 const (
-	dbPath = "/1.txt"
+	dbFolder = "test"
+	dbName = "1"
+	dbPath = dbFolder + string(os.PathSeparator) + dbName
 )
 
 func TestBaseRW(t *testing.T)  {
+	os.MkdirAll(dbFolder, 0777)
+	defer os.RemoveAll(dbFolder)
+
 	db := Open(dbPath)
 	defer db.Close()
 

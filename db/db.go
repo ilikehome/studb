@@ -9,6 +9,10 @@ import (
 	"fmt"
 )
 
+const(
+	DB_SUFFIX = ".db"
+	INX_SUFFIX = ".inx"
+)
 type DB struct{
 	lock     sync.RWMutex
 	seq      int64
@@ -18,21 +22,23 @@ type DB struct{
 	c		*cache.Cache
 }
 
-func Open(dbFile string ) *DB{
-	f,err := os.OpenFile(dbFile, os.O_RDWR|os.O_CREATE, 0666)
+func Open(dbName string ) *DB{
+	dbFilePath := dbName + DB_SUFFIX
+	inxFilePath := dbName + INX_SUFFIX
+	f,err := os.OpenFile(dbFilePath, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil{
 		panic(err.Error())
 	}
 	db := new(DB)
 
-	f,err = os.OpenFile(dbFile+".inx", os.O_RDWR|os.O_CREATE, 0666)
+	f,err = os.OpenFile(inxFilePath, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil{
 		panic(err.Error())
 	}
 	inx := index.Init(f)
 	db.diskFile = f
 	db.inx = inx
-	db.j = wal.OpenJournal(dbFile+".j")
+	db.j = wal.OpenJournal(dbName +".j")
 	db.c = cache.CreateCache(10)
 	return db
 }

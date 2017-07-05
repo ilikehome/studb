@@ -8,6 +8,8 @@ import (
 
 func TestBase(t *testing.T) {
 	c := CreateCache(10)
+	c.Put([]byte{1,2,3,4,5}, "y")
+
 	c.Put([3]byte{1,2,3}, "i")
 	v := c.Get([3]byte{1,2,3})
 	if v != "i" {
