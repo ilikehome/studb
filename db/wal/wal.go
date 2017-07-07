@@ -44,7 +44,11 @@ type record struct{
 
 func OpenJournal(journal string) *Log {
 	l := new(Log)
+<<<<<<< HEAD
+	jf,_ := os.OpenFile(journal, os.O_APPEND | os.O_CREATE, 0666)
+=======
 	jf,_ := os.OpenFile(journal, os.O_APPEND, 0666)
+>>>>>>> branch 'feature_cache' of https://github.com/ilikehome/studb.git
 	l.f = jf
 	if fInfo,err := jf.Stat(); err==nil{
 		l.chunkOffset = fInfo.Size() % 32*1024
