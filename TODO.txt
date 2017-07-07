@@ -44,6 +44,7 @@ Todo: 最原始的版本完成，以下是需要继续完成的部分。以下�
 12 MVCC支持
 13 不同的D级别？
 14 undo log.
+15 cahce& index in memory all use map, and the key is not correct. bug
 
 
 开始拉feature分支，逐步完成。

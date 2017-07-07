@@ -1,6 +1,8 @@
 package cache
 
-import "golang.org/x/tools/go/gcimporter15/testdata"
+import (
+	"encoding/hex"
+)
 
 type Cache struct{
 	m map[interface{}]interface{} //change to sync.Map in go1.9
@@ -13,18 +15,28 @@ func CreateCache(size int) *Cache{
 }
 
 func(c *Cache)Put(k interface{}, v interface{}){
-	value, ok := k.([]interface{})
+	value, ok := k.([]byte)
 	if ok {
-		va := [len(value)]interface{}{}
-		copy(va[:], value)
+		c.m[hex.EncodeToString(value)] = v
+	}else{
+		c.m[k] = v
 	}
-	c.m[k] = v
 }
 
 func(c *Cache)Del(k interface{}){
-	delete(c.m, k)
+	value, ok := k.([]byte)
+	if ok {
+		delete(c.m, hex.EncodeToString(value))
+	}else{
+		delete(c.m, k)
+	}
 }
 
 func(c *Cache)Get(k interface{}) interface{}{
-	return c.m[k]
+	value, ok := k.([]byte)
+	if ok {
+		return c.m[hex.EncodeToString(value)]
+	}else{
+		return c.m[k]
+	}
 }
